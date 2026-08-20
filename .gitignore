@@ -24,3 +24,6 @@ Thumbs.db
 
 # 本地数据（如果有）
 *.local
+
+# 临时安装/工具脚本
+.gh-install/

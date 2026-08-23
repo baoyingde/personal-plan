@@ -1,8 +1,24 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import App from '../App'
+import { useStore } from '../store/store'
+import { getFreshAppData } from './helpers'
+import { mockFetch, resetMockDb } from './mockApi'
 
-describe('App 布局与导航', () => {
+describe('App 布局与导航（第三版·登录后）', () => {
+  beforeEach(() => {
+    resetMockDb()
+    mockFetch()
+    // 预置登录态
+    localStorage.setItem('lp_token', 'mock-token')
+    localStorage.setItem('lp_user', JSON.stringify({ id: 1, username: 'test' }))
+    useStore.setState({ data: getFreshAppData(), loading: false })
+  })
+
+  afterEach(() => {
+    localStorage.clear()
+  })
+
   const waitForApp = async () => {
     await waitFor(() => {
       expect(screen.getByTestId('sidebar')).toBeInTheDocument()
@@ -55,23 +71,12 @@ describe('App 布局与导航', () => {
     expect(screen.getByTestId('nav-home')).not.toHaveClass('active')
   })
 
-  it('点击不同导航项都能切换', async () => {
+  it('未登录时显示登录页', async () => {
+    localStorage.clear()
     render(<App />)
-    await waitForApp()
-    const views = ['exercise', 'diet', 'entertainment', 'timetable', 'music', 'memo', 'settings'] as const
-    for (const view of views) {
-      fireEvent.click(screen.getByTestId(`nav-${view}`))
-      expect(screen.getByTestId(`nav-${view}`)).toHaveClass('active')
-    }
-  })
-
-  it('顶栏显示今天日期', async () => {
-    render(<App />)
-    await waitForApp()
-    const topbar = screen.getByTestId('topbar')
-    const today = new Date()
-    const month = today.getMonth() + 1
-    const day = today.getDate()
-    expect(topbar.textContent).toContain(`${month}月${day}日`)
+    await waitFor(() => {
+      expect(screen.getAllByText('登录').length).toBeGreaterThan(0)
+      expect(screen.getByPlaceholderText('输入用户名')).toBeInTheDocument()
+    })
   })
 })

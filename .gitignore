@@ -27,3 +27,7 @@ Thumbs.db
 
 # 临时安装/工具脚本
 .gh-install/
+
+# 后端环境配置（含数据库密码，绝不提交）
+server/.env
+server/node_modules/

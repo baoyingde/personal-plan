@@ -1,51 +1,19 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useStore } from '../store/store'
-import { exportToFile, validateImportData, readFileAsText } from '../utils/backup'
-import ConfirmDialog from '../components/layout/ConfirmDialog'
+import { setToken, setUser } from '../api/client'
 
 export default function SettingsView() {
-  const { data, updateSettings, importData, getDataForExport } = useStore()
+  const { data, updateSettings } = useStore()
   const { settings } = data
-  const fileRef = useRef<HTMLInputElement>(null)
-  const [importConfirm, setImportConfirm] = useState(false)
-  const [pendingImport, setPendingImport] = useState<any>(null)
-  const [importError, setImportError] = useState('')
 
   // Period editing
   const [editPeriods, setEditPeriods] = useState(false)
   const [periods, setPeriods] = useState(settings.periods)
 
-  const handleExport = () => {
-    const dataToExport = getDataForExport()
-    exportToFile(dataToExport)
-  }
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImportError('')
-    try {
-      const json = await readFileAsText(file)
-      const validated = validateImportData(json)
-      if (!validated) {
-        setImportError('文件格式不正确或结构不匹配，请检查是否为本应用导出的备份文件。')
-        return
-      }
-      setPendingImport(validated)
-      setImportConfirm(true)
-    } catch {
-      setImportError('读取文件失败')
-    }
-    if (fileRef.current) fileRef.current.value = ''
-  }
-
-  const handleConfirmImport = async () => {
-    if (!pendingImport) return
-    // Auto-backup before import
-    handleExport()
-    importData(pendingImport)
-    setPendingImport(null)
-    setImportConfirm(false)
+  const handleLogout = () => {
+    setToken(null)
+    setUser(null)
+    window.dispatchEvent(new CustomEvent('lp:logout'))
   }
 
   const handleSavePeriods = () => {
@@ -53,19 +21,30 @@ export default function SettingsView() {
     setEditPeriods(false)
   }
 
+  // 当前登录用户信息
+  let currentUser: { username?: string; nickname?: string } | null = null
+  try {
+    const s = localStorage.getItem('lp_user')
+    if (s) currentUser = JSON.parse(s)
+  } catch { /* ignore */ }
+
   return (
     <div style={{ maxWidth: 600 }}>
-      {/* 数据备份 */}
+      {/* 账号信息 */}
       <div className="card mb-16">
-        <div className="card-header">💾 数据备份</div>
+        <div className="card-header">👤 账号信息</div>
         <div className="card-body">
-          <p className="text-sm text-secondary mb-16">导出全部数据到 JSON 文件；从文件导入恢复数据（导入前会自动备份当前数据）。</p>
-          <div className="flex gap-8">
-            <button className="btn btn-primary" onClick={handleExport}>导出全部数据</button>
-            <button className="btn" onClick={() => fileRef.current?.click()}>导入数据</button>
-            <input ref={fileRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleFileChange} />
+          <p className="text-sm text-secondary mb-16">
+            第三版起，你的数据保存在服务器数据库中，登录后即可使用，多设备数据一致。
+          </p>
+          <div className="flex items-center gap-8 mb-16">
+            <span style={{ fontSize: 40 }}>🫡</span>
+            <div>
+              <div className="fw-600">{currentUser?.nickname || currentUser?.username || '已登录'}</div>
+              <div className="text-sm text-secondary">用户名：{currentUser?.username}</div>
+            </div>
           </div>
-          {importError && <div className="text-sm text-danger mt-8">{importError}</div>}
+          <button className="btn" onClick={handleLogout}>退出登录</button>
         </div>
       </div>
 
@@ -167,22 +146,11 @@ export default function SettingsView() {
       <div className="card">
         <div className="card-header">ℹ️ 关于</div>
         <div className="card-body text-sm text-secondary">
-          <div>生活规划 App v2.0</div>
-          <div>本地运行，数据存在浏览器 IndexedDB 中，可在顶栏点击「保存」手动持久化。</div>
-          <div>音乐使用 File System Access API 从本地文件夹直接读取。</div>
+          <div>生活规划 App v3.0</div>
+          <div>第三版：数据存储于服务器数据库（MySQL），支持用户登录。</div>
+          <div>音乐：在线搜索播放（试听用途）。</div>
         </div>
       </div>
-
-      {/* 导入确认 */}
-      <ConfirmDialog
-        open={importConfirm}
-        title="导入数据"
-        message="导入将覆盖当前所有数据。系统会在导入前自动备份当前数据。确定继续吗？"
-        onConfirm={handleConfirmImport}
-        onCancel={() => { setImportConfirm(false); setPendingImport(null) }}
-        danger
-        confirmText="确认导入"
-      />
     </div>
   )
 }

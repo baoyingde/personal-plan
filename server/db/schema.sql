@@ -16,7 +16,24 @@ CREATE TABLE IF NOT EXISTS users (
   username      VARCHAR(50)  NOT NULL UNIQUE COMMENT '用户名（登录用）',
   password_hash VARCHAR(255) NOT NULL COMMENT 'bcrypt 密码哈希（绝不存明文）',
   nickname      VARCHAR(50)  DEFAULT NULL COMMENT '昵称',
-  created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+  role          VARCHAR(10)  NOT NULL DEFAULT 'user' COMMENT 'user / admin',
+  status        TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '1=正常 0=禁用',
+  created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_users_role (role)
+) ENGINE=InnoDB;
+
+-- ---------- 后台操作日志 ----------
+CREATE TABLE IF NOT EXISTS admin_logs (
+  id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  admin_id    INT UNSIGNED NOT NULL COMMENT '操作的管理员 id',
+  admin_name  VARCHAR(50)  NOT NULL COMMENT '管理员用户名',
+  action      VARCHAR(100) NOT NULL COMMENT '操作类型，如 delete_user / disable_user',
+  target_id   INT UNSIGNED DEFAULT NULL COMMENT '操作目标（如被删用户 id）',
+  target_name VARCHAR(100) DEFAULT NULL COMMENT '操作目标名称',
+  detail      TEXT COMMENT '补充信息',
+  created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_logs_admin (admin_id),
+  INDEX idx_logs_time (created_at)
 ) ENGINE=InnoDB;
 
 -- ---------- 学习计划：学科 ----------

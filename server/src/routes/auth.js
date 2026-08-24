@@ -67,6 +67,11 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: '用户名或密码错误' })
     }
 
+    // 2.5 检查账号是否被禁用
+    if (user.status === 0) {
+      return res.status(403).json({ error: '该账号已被禁用，请联系管理员' })
+    }
+
     // 3. 签发 JWT
     const token = jwt.sign(
       { userId: user.id, username: user.username },

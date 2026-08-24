@@ -6,6 +6,7 @@ const express = require('express')
 const cors = require('cors')
 
 const authRoutes = require('./routes/auth')
+const adminRoutes = require('./routes/admin')
 const memoRoutes = require('./routes/memos')
 const studyRoutes = require('./routes/study')
 const exerciseRoutes = require('./routes/exercise')
@@ -22,6 +23,7 @@ app.use(express.json())         // 解析 JSON 请求体
 
 // 路由
 app.use('/api/auth', authRoutes)
+app.use('/api/admin', adminRoutes)
 app.use('/api/memos', memoRoutes)
 app.use('/api/study', studyRoutes)
 app.use('/api/exercise', exerciseRoutes)
@@ -32,7 +34,7 @@ app.use('/api/music', musicRoutes)
 
 // 健康检查
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true, service: 'life-planner-server', version: '3.0.0' })
+  res.json({ ok: true, service: 'life-planner-server', version: '3.1.0' })
 })
 
 // 404 兜底

@@ -154,3 +154,65 @@ export const musicApi = {
     api.get<Array<{ id: number; name: string; artist: string; album: string; duration: number }>>(`/music/search?keyword=${encodeURIComponent(keyword)}&limit=${limit}`),
   playUrl: (id: number) => api.get<{ url: string; id: number }>(`/music/play?id=${id}`),
 }
+
+// ===== 后台管理 =====
+// 管理员 token 单独存（与用户 token 分开）
+export function getAdminToken(): string | null {
+  return localStorage.getItem('lp_admin_token')
+}
+export function setAdminToken(token: string | null) {
+  if (token) localStorage.setItem('lp_admin_token', token)
+  else localStorage.removeItem('lp_admin_token')
+}
+
+async function adminRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const token = getAdminToken()
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  const resp = await fetch(`${API_BASE}${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  })
+  const data = await resp.json().catch(() => null)
+
+  if (resp.status === 401 || resp.status === 403) {
+    setAdminToken(null)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('lp:admin-logout'))
+    }
+    throw new Error((data && data.error) || '无权限')
+  }
+  if (!resp.ok) {
+    throw new Error((data && data.error) || `请求失败 (${resp.status})`)
+  }
+  return data as T
+}
+
+export const adminApi = {
+  login: async (username: string, password: string) => {
+    const data = await api.post<{ token: string; admin: unknown }>('/admin/login', { username, password })
+    setAdminToken(data.token)
+    return data
+  },
+  stats: () => adminRequest<{
+    userCount: number; todayReg: number; adminCount: number; disabledCount: number;
+    dataCounts: Record<string, number>; trend: Array<{ date: string; count: number }>
+  }>('GET', '/admin/stats'),
+  users: (params: { keyword?: string; page?: number; pageSize?: number }) => {
+    const q = new URLSearchParams()
+    if (params.keyword) q.set('keyword', params.keyword)
+    if (params.page) q.set('page', String(params.page))
+    if (params.pageSize) q.set('pageSize', String(params.pageSize))
+    return adminRequest<{
+      total: number; page: number; pageSize: number;
+      users: Array<{ id: number; username: string; nickname: string; role: string; status: number; created_at: string; dataCounts: Record<string, number> }>
+    }>('GET', `/admin/users?${q}`)
+  },
+  userDetail: (id: number) => adminRequest(`GET`, `/admin/users/${id}`),
+  setStatus: (id: number, status: number) => adminRequest('PUT', `/admin/users/${id}/status`, { status }),
+  resetPassword: (id: number, new_password: string) => adminRequest('PUT', `/admin/users/${id}/password`, { new_password }),
+  remove: (id: number) => adminRequest('DELETE', `/admin/users/${id}`),
+  logs: (page = 1, pageSize = 20) => adminRequest<{ total: number; logs: Array<{ id: number; admin_name: string; action: string; target_name: string; detail: string; created_at: string }> }>('GET', `/admin/logs?page=${page}&pageSize=${pageSize}`),
+}

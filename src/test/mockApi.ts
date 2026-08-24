@@ -35,6 +35,14 @@ export function mockFetch() {
     if (method === 'GET') {
       if (path === '/api/auth/me') {
         data = { id: 1, username: 'test', nickname: '测试用户' }
+      } else if (path === '/api/admin/stats') {
+        data = { userCount: 10, todayReg: 2, adminCount: 1, disabledCount: 0, dataCounts: { memos: 5, courses: 3 }, trend: [] }
+      } else if (path === '/api/admin/users' || path.startsWith('/api/admin/users?')) {
+        data = { total: 1, page: 1, pageSize: 10, users: [{ id: 1, username: 'tzjsb', nickname: '', role: 'admin', status: 1, created_at: '2026-08-01', dataCounts: { memos: 2 } }] }
+      } else if (path.startsWith('/api/admin/users/') && !path.endsWith('/status') && !path.endsWith('/password')) {
+        data = { user: { id: 1, username: 'tzjsb', nickname: '', role: 'admin', status: 1, created_at: '2026-08-01' }, data: { studyTasks: [], memos: [], courses: [], exerciseEntries: [], entertainments: [] } }
+      } else if (path === '/api/admin/logs') {
+        data = { total: 2, logs: [{ id: 1, admin_name: 'tzjsb', action: 'delete_user', target_name: 'user1', created_at: '2026-08-01' }] }
       } else if (db[path] !== undefined) {
         data = db[path].filter(Boolean)
       } else {
@@ -46,6 +54,8 @@ export function mockFetch() {
         data = { id: nextId++, username: body.username, nickname: body.nickname || body.username }
       } else if (path === '/api/auth/login') {
         data = { token: 'mock-token', user: { id: 1, username: body.username } }
+      } else if (path === '/api/admin/login') {
+        data = { token: 'mock-admin-token', admin: { id: 11, username: body.username } }
       } else if (db[path] !== undefined) {
         const record = { id: body.id !== undefined ? String(body.id) : nextId++, ...body }
         db[path].push(record)
@@ -55,25 +65,30 @@ export function mockFetch() {
         data = { error: 'not found' }
       }
     } else if (method === 'PUT') {
-      const seg = path.split('/')
-      const last = seg[seg.length - 1]
-      const id = Number(last)
-      const basePath = seg.slice(0, -1).join('/')
-      if (Number.isNaN(id)) {
-        // 非 id 结尾（如 /api/courses/settings），整体当 basePath 处理
-        const list = db[path] || []
-        list[0] = { ...(list[0] || {}), ...body }
-        db[path] = list
-        data = list[0]
+      // admin 接口：状态/密码
+      if (path.includes('/api/admin/users/') && (path.endsWith('/status') || path.endsWith('/password'))) {
+        data = { ok: true }
       } else {
-        const list = db[basePath] || []
-        const idx = list.findIndex(r => r && r.id === id)
-        if (idx >= 0) {
-          list[idx] = { ...list[idx], ...body }
-          data = list[idx]
+        const seg = path.split('/')
+        const last = seg[seg.length - 1]
+        const id = Number(last)
+        const basePath = seg.slice(0, -1).join('/')
+        if (Number.isNaN(id)) {
+          // 非 id 结尾（如 /api/courses/settings），整体当 basePath 处理
+          const list = db[path] || []
+          list[0] = { ...(list[0] || {}), ...body }
+          db[path] = list
+          data = list[0]
         } else {
-          status = 404
-          data = { error: 'not found' }
+          const list = db[basePath] || []
+          const idx = list.findIndex(r => r && r.id === id)
+          if (idx >= 0) {
+            list[idx] = { ...list[idx], ...body }
+            data = list[idx]
+          } else {
+            status = 404
+            data = { error: 'not found' }
+          }
         }
       }
     } else if (method === 'DELETE') {

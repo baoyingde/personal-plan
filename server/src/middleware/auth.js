@@ -15,10 +15,23 @@ function authMiddleware(req, res, next) {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET)
     req.userId = payload.userId
+    req.userRole = payload.role || 'user'
+    req.userName = payload.username || ''
     next()
   } catch {
     return res.status(401).json({ error: '登录已过期，请重新登录' })
   }
 }
 
+// 管理员专用中间件：先认证，再校验 role === 'admin'
+function requireAdmin(req, res, next) {
+  authMiddleware(req, res, () => {
+    if (req.userRole !== 'admin') {
+      return res.status(403).json({ error: '无权限：需要管理员身份' })
+    }
+    next()
+  })
+}
+
 module.exports = authMiddleware
+module.exports.requireAdmin = requireAdmin

@@ -211,32 +211,68 @@ cd server && node test/verify.js   # 后端全链路验证（需后端已启动�
 
 ---
 
-## 6. 项目结构
+## 6. 后台管理
+
+内置一个**管理后台**（管理员专用），用于管理用户和查看数据。
+
+### 6.1 进入方式
+
+在地址栏加 `?admin` 参数访问管理端：
+
+```
+http://localhost:5173/?admin
+```
+
+### 6.2 管理员账号
+
+- 用 SQL 把某账号提升为管理员：`UPDATE users SET role='admin' WHERE username='你的账号';`
+- 或直接使用已配置的管理员账号登录
+
+### 6.3 功能
+
+| 模块 | 功能 |
+|---|---|
+| 📊 仪表盘 | 用户总数、今日注册、管理员数、已禁用数、各模块数据量、近 7 天注册趋势 |
+| 👥 用户管理 | 用户列表（搜索/分页）、用户详情（业务数据只读查看）、禁用/启用、重置密码、删除用户 |
+| 📜 操作日志 | 记录管理员的关键操作（禁用/启用/重置密码/删除用户） |
+
+### 6.4 安全
+
+- 所有管理接口校验 `role=admin`，普通用户访问返回 403；
+- 删除用户需二次确认，级联删除其全部数据；
+- 操作日志可追溯。
+
+---
+
+## 7. 项目结构
 
 ```
 ├── src/                    # 前端（React + TypeScript + Vite）
 │   ├── api/client.ts       # API 客户端（token 注入、所有接口封装）
 │   ├── store/store.ts      # zustand 状态管理（数据源：后端 API）
-│   ├── views/              # 9 大模块视图 + 登录页
-│   └── test/               # 前端测试（82 个用例）
+│   ├── views/              # 9 大模块视图 + 登录页 + 管理后台 AdminApp
+│   ├── styles/admin.css    # 管理后台样式
+│   └── test/               # 前端测试（89 个用例）
 ├── server/                 # 后端（Node.js + Express + MySQL）
 │   ├── db/schema.sql       # 数据库结构（11 张表）
+│   ├── db/admin_migration.sql # 管理后台迁移（role 字段 + admin_logs 表）
 │   ├── src/index.js        # 后端入口
-│   ├── src/routes/         # API 路由（auth/memos/study/exercise/diet/entertainments/courses/music）
-│   ├── src/middleware/     # JWT 认证中间件
-│   └── test/               # 后端验证脚本
+│   ├── src/routes/         # API 路由（auth/admin/memos/study/exercise/diet/entertainments/courses/music）
+│   ├── src/middleware/     # JWT 认证中间件（含 requireAdmin）
+│   └── test/               # 后端验证脚本（含 admin-verify.js）
 └── PRD.md                  # 产品需求文档
 ```
 
-## 7. 技术栈
+## 8. 技术栈
 
 - **前端**：React 18 + TypeScript + Vite + zustand
 - **后端**：Node.js + Express + mysql2
 - **数据库**：MySQL 8.0
 - **认证**：JWT（jsonwebtoken）+ bcrypt 密码哈希
+- **管理后台**：角色权限（admin/user）+ 操作日志
 - **音乐**：后端代理在线音乐接口
-- **测试**：Jest + Testing Library（前端 82 用例）、后端全链路验证
+- **测试**：Jest + Testing Library（前端 89 用例）、后端全链路验证
 
-## 8. 开源协议
+## 9. 开源协议
 
 本项目使用 **MIT License**（见仓库根目录 `LICENSE` 文件），由 `young` 维护。你可以自由使用、修改、分发本软件，包括商用；使用本项目时请保留版权声明与许可文本。

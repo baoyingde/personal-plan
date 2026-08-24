@@ -1,0 +1,172 @@
+/* ===== 后台管理界面样式 ===== */
+
+.admin-app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 200px;
+  background: linear-gradient(180deg, #1e1b4b, #312e81);
+  color: rgba(255,255,255,0.75);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+
+.admin-logo {
+  padding: 20px 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.admin-sidebar nav {
+  flex: 1;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-sidebar nav button {
+  text-align: left;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.admin-sidebar nav button:hover { background: rgba(255,255,255,0.1); }
+.admin-sidebar nav button.active { background: rgba(255,255,255,0.16); color: #fff; }
+
+.admin-sidebar-bottom {
+  padding: 12px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+}
+
+.admin-sidebar-bottom button {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,0.3);
+  background: transparent;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-main {
+  flex: 1;
+  margin-left: 200px;
+  padding: 28px;
+  max-width: 1200px;
+}
+
+.admin-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.admin-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  color: var(--text-secondary);
+}
+
+.admin-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
+
+.admin-card h3 { margin-bottom: 12px; }
+
+/* 登录页 */
+.admin-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1e1b4b, #4338ca);
+}
+
+.admin-login-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  width: 360px;
+  padding: 32px 28px;
+  text-align: center;
+}
+
+.admin-login-card h1 { font-size: 22px; margin-bottom: 4px; }
+.admin-login-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+/* 统计卡片 */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.admin-stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-stat-num {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+/* 数据条 */
+.admin-data-bars { display: flex; flex-direction: column; gap: 8px; }
+.admin-data-bar { display: flex; align-items: center; gap: 10px; }
+.admin-data-label { width: 90px; font-size: 13px; }
+.admin-data-track { flex: 1; height: 14px; background: var(--bg); border-radius: 7px; overflow: hidden; }
+.admin-data-fill { height: 100%; background: var(--accent-gradient); border-radius: 7px; transition: width 0.3s; }
+.admin-data-val { width: 40px; text-align: right; font-size: 13px; }
+
+/* 趋势图 */
+.admin-trend { display: flex; align-items: flex-end; gap: 12px; height: 140px; padding-top: 10px; }
+.admin-trend-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; }
+.admin-trend-bar { width: 26px; background: var(--accent-gradient); border-radius: 4px 4px 0 0; min-height: 4px; }
+.admin-trend-label { font-size: 11px; color: var(--text-secondary); }
+.admin-trend-val { font-size: 12px; font-weight: 600; }
+
+/* 表格 */
+.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.admin-table th {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.admin-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+
+/* 工具条 / 操作 */
+.admin-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
+.admin-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.admin-pagination { display: flex; gap: 12px; align-items: center; justify-content: flex-end; padding-top: 12px; color: var(--text-secondary); font-size: 13px; }
+
+/* 详情 */
+.admin-detail-block { margin-top: 10px; }
+.admin-detail-list { margin: 4px 0 0 18px; font-size: 13px; color: var(--text-secondary); }

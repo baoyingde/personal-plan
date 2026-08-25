@@ -198,6 +198,8 @@ function UserList() {
       if (confirmAction.type === 'disable') await adminApi.setStatus(confirmAction.user.id, 0)
       else if (confirmAction.type === 'enable') await adminApi.setStatus(confirmAction.user.id, 1)
       else if (confirmAction.type === 'delete') await adminApi.remove(confirmAction.user.id)
+      else if (confirmAction.type === 'grant_admin') await adminApi.setRole(confirmAction.user.id, 'admin')
+      else if (confirmAction.type === 'revoke_admin') await adminApi.setRole(confirmAction.user.id, 'user')
       setConfirmAction(null)
       load()
     } catch (e) {
@@ -248,6 +250,9 @@ function UserList() {
                 <td>
                   <div className="admin-actions">
                     <button className="btn btn-sm" onClick={() => adminApi.userDetail(u.id).then(setDetailUser)}>详情</button>
+                    {u.role === 'admin'
+                      ? <button className="btn btn-sm" onClick={() => setConfirmAction({ type: 'revoke_admin', user: u })}>取消管理员</button>
+                      : <button className="btn btn-sm btn-primary" onClick={() => setConfirmAction({ type: 'grant_admin', user: u })}>设为管理员</button>}
                     {u.role !== 'admin' && (
                       <>
                         {u.status === 1
@@ -317,6 +322,8 @@ function UserList() {
                 {confirmAction.type === 'disable' && `确定要禁用用户「${confirmAction.user.username}」吗？禁用后该用户无法登录。`}
                 {confirmAction.type === 'enable' && `确定要重新启用用户「${confirmAction.user.username}」吗？`}
                 {confirmAction.type === 'delete' && `确定要删除用户「${confirmAction.user.username}」吗？将同时删除其全部业务数据，此操作不可恢复！`}
+                {confirmAction.type === 'grant_admin' && `确定要将「${confirmAction.user.username}」设为管理员吗？该用户将获得后台管理权限。`}
+                {confirmAction.type === 'revoke_admin' && `确定要取消「${confirmAction.user.username}」的管理员权限吗？该用户将变为普通用户。`}
               </p>
             </div>
             <div className="modal-footer">
@@ -354,7 +361,8 @@ function AdminLogs() {
   const [page, setPage] = useState(1)
 
   const actionLabels: Record<string, string> = {
-    delete_user: '删除用户', disable_user: '禁用用户', enable_user: '启用用户', reset_password: '重置密码',
+    delete_user: '删除用户', disable_user: '禁用用户', enable_user: '启用用户',
+    reset_password: '重置密码', grant_admin: '设为管理员', revoke_admin: '取消管理员',
   }
 
   useEffect(() => {

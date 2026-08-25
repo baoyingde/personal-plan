@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store/store'
-import { setToken, setUser } from '../api/client'
+import { setToken, setUser, authApi } from '../api/client'
 
 export default function SettingsView() {
   const { data, updateSettings } = useStore()
@@ -9,6 +9,31 @@ export default function SettingsView() {
   // Period editing
   const [editPeriods, setEditPeriods] = useState(false)
   const [periods, setPeriods] = useState(settings.periods)
+
+  // 修改密码
+  const [showChangePw, setShowChangePw] = useState(false)
+  const [oldPw, setOldPw] = useState('')
+  const [newPw, setNewPw] = useState('')
+  const [newPw2, setNewPw2] = useState('')
+  const [pwError, setPwError] = useState('')
+  const [pwOk, setPwOk] = useState('')
+
+  const handleChangePw = async () => {
+    setPwError('')
+    setPwOk('')
+    if (!oldPw || !newPw) { setPwError('请填写完整'); return }
+    if (newPw.length < 6) { setPwError('新密码至少 6 位'); return }
+    if (newPw !== newPw2) { setPwError('两次输入的新密码不一致'); return }
+    if (oldPw === newPw) { setPwError('新密码不能和旧密码相同'); return }
+    try {
+      await authApi.changePassword(oldPw, newPw)
+      setPwOk('密码修改成功！下次登录请使用新密码')
+      setOldPw(''); setNewPw(''); setNewPw2('')
+      setShowChangePw(false)
+    } catch (e) {
+      setPwError(e instanceof Error ? e.message : '修改失败')
+    }
+  }
 
   const handleLogout = () => {
     setToken(null)
@@ -44,9 +69,43 @@ export default function SettingsView() {
               <div className="text-sm text-secondary">用户名：{currentUser?.username}</div>
             </div>
           </div>
-          <button className="btn" onClick={handleLogout}>退出登录</button>
+          <div className="flex gap-8">
+            <button className="btn" onClick={handleLogout}>退出登录</button>
+            <button className="btn btn-primary" onClick={() => setShowChangePw(true)}>修改密码</button>
+          </div>
+          {pwOk && <div style={{ color: 'var(--success)', fontSize: 13, marginTop: 8 }}>{pwOk}</div>}
         </div>
       </div>
+
+      {/* 修改密码弹窗 */}
+      {showChangePw && (
+        <div className="modal-overlay" onClick={() => setShowChangePw(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header"><span>修改密码</span>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowChangePw(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">旧密码</label>
+                <input className="input" type="password" value={oldPw} onChange={e => setOldPw(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">新密码（至少 6 位）</label>
+                <input className="input" type="password" value={newPw} onChange={e => setNewPw(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">确认新密码</label>
+                <input className="input" type="password" value={newPw2} onChange={e => setNewPw2(e.target.value)} />
+              </div>
+              {pwError && <div style={{ color: 'var(--danger)', fontSize: 13 }}>{pwError}</div>}
+            </div>
+            <div className="modal-footer">
+              <button className="btn" onClick={() => setShowChangePw(false)}>取消</button>
+              <button className="btn btn-primary" onClick={handleChangePw}>确认修改</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 学期设置 */}
       <div className="card mb-16">

@@ -35,11 +35,15 @@ export function mockFetch() {
     if (method === 'GET') {
       if (path === '/api/auth/me') {
         data = { id: 1, username: 'test', nickname: '测试用户' }
+      } else if (path.startsWith('/api/music/search')) {
+        data = [{ id: 'mock_mid', name: '测试歌曲', artist: '测试歌手', album: '测试专辑', duration: 240000, mid: 'mock_mid' }]
+      } else if (path.startsWith('/api/music/play')) {
+        data = { url: 'https://example.com/test.mp3', id: 'mock_mid' }
       } else if (path === '/api/admin/stats') {
         data = { userCount: 10, todayReg: 2, adminCount: 1, disabledCount: 0, dataCounts: { memos: 5, courses: 3 }, trend: [] }
       } else if (path === '/api/admin/users' || path.startsWith('/api/admin/users?')) {
         data = { total: 1, page: 1, pageSize: 10, users: [{ id: 1, username: 'tzjsb', nickname: '', role: 'admin', status: 1, created_at: '2026-08-01', dataCounts: { memos: 2 } }] }
-      } else if (path.startsWith('/api/admin/users/') && !path.endsWith('/status') && !path.endsWith('/password')) {
+      } else if (path.startsWith('/api/admin/users/') && !path.endsWith('/status') && !path.endsWith('/password') && !path.endsWith('/role')) {
         data = { user: { id: 1, username: 'tzjsb', nickname: '', role: 'admin', status: 1, created_at: '2026-08-01' }, data: { studyTasks: [], memos: [], courses: [], exerciseEntries: [], entertainments: [] } }
       } else if (path === '/api/admin/logs') {
         data = { total: 2, logs: [{ id: 1, admin_name: 'tzjsb', action: 'delete_user', target_name: 'user1', created_at: '2026-08-01' }] }
@@ -56,6 +60,8 @@ export function mockFetch() {
         data = { token: 'mock-token', user: { id: 1, username: body.username } }
       } else if (path === '/api/admin/login') {
         data = { token: 'mock-admin-token', admin: { id: 11, username: body.username } }
+      } else if (path === '/api/auth/change-password') {
+        data = { ok: true, message: '密码修改成功' }
       } else if (db[path] !== undefined) {
         const record = { id: body.id !== undefined ? String(body.id) : nextId++, ...body }
         db[path].push(record)
@@ -65,9 +71,9 @@ export function mockFetch() {
         data = { error: 'not found' }
       }
     } else if (method === 'PUT') {
-      // admin 接口：状态/密码
-      if (path.includes('/api/admin/users/') && (path.endsWith('/status') || path.endsWith('/password'))) {
-        data = { ok: true }
+      // admin 接口：状态/密码/角色
+      if (path.includes('/api/admin/users/') && (path.endsWith('/status') || path.endsWith('/password') || path.endsWith('/role'))) {
+        data = { ok: true, role: body.role || 'user' }
       } else {
         const seg = path.split('/')
         const last = seg[seg.length - 1]

@@ -228,6 +228,30 @@ router.put('/users/:id/password', async (req, res) => {
   }
 })
 
+// ===== 设用户为管理员/取消管理员 =====
+// PUT /api/admin/users/:id/role { role: 'admin' | 'user' }
+router.put('/users/:id/role', async (req, res) => {
+  const uid = Number(req.params.id)
+  const { role } = req.body
+  if (!['admin', 'user'].includes(role)) {
+    return res.status(400).json({ error: '角色只能是 admin 或 user' })
+  }
+  try {
+    if (uid === req.userId && role === 'user') {
+      return res.status(400).json({ error: '不能取消自己的管理员权限' })
+    }
+    const [rows] = await pool.query('SELECT id, username, role FROM users WHERE id = ?', [uid])
+    if (rows.length === 0) return res.status(404).json({ error: '用户不存在' })
+
+    await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, uid])
+    await logAction(req.userId, req.userName || '', role === 'admin' ? 'grant_admin' : 'revoke_admin', uid, rows[0].username)
+    res.json({ ok: true, role })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: '服务器错误' })
+  }
+})
+
 // ===== 删除用户（级联删除其所有数据） =====
 // DELETE /api/admin/users/:id
 router.delete('/users/:id', async (req, res) => {

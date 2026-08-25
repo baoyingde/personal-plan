@@ -52,7 +52,14 @@ export default function MusicView() {
     if (index < 0 || index >= songs.length) return
     stopAudio()
     try {
-      const { url } = await musicApi.playUrl(songs[index].id)
+      const result = await musicApi.playUrl(songs[index].id)
+      const url = result.url
+      // 如果后端返回 fallback（试听链接都失效），打开 QQ 音乐页面
+      if ((result as any).fallback) {
+        window.open(url, '_blank')
+        setError('该歌曲需要在 QQ 音乐中播放（已为你打开页面）')
+        return
+      }
       const audio = new Audio(url)
       audio.volume = volume
       audioRef.current = audio

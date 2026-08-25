@@ -100,4 +100,42 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 })
 
+// POST /api/auth/change-password 用户修改自己的密码
+// body: { old_password, new_password }
+router.post('/change-password', authMiddleware, async (req, res) => {
+  const { old_password, new_password } = req.body
+
+  if (!old_password || !new_password) {
+    return res.status(400).json({ error: '旧密码和新密码都不能为空' })
+  }
+  if (new_password.length < 6) {
+    return res.status(400).json({ error: '新密码至少 6 位' })
+  }
+  if (old_password === new_password) {
+    return res.status(400).json({ error: '新密码不能和旧密码相同' })
+  }
+
+  try {
+    const [rows] = await pool.query('SELECT id, password_hash FROM users WHERE id = ?', [req.userId])
+    if (rows.length === 0) {
+      return res.status(404).json({ error: '用户不存在' })
+    }
+
+    // 验证旧密码
+    const ok = await bcrypt.compare(old_password, rows[0].password_hash)
+    if (!ok) {
+      return res.status(401).json({ error: '旧密码错误' })
+    }
+
+    // 更新为新密码
+    const hash = await bcrypt.hash(new_password, 10)
+    await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [hash, req.userId])
+
+    res.json({ ok: true, message: '密码修改成功' })
+  } catch (err) {
+    console.error('修改密码失败:', err)
+    res.status(500).json({ error: '服务器错误' })
+  }
+})
+
 module.exports = router

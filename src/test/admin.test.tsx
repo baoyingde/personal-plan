@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import AdminApp from '../views/AdminApp'
-import { adminApi, getAdminToken } from '../api/client'
+import { adminApi, authApi, getAdminToken } from '../api/client'
 import { mockFetch, resetMockDb } from './mockApi'
 
 describe('后台管理（第四版新功能）', () => {
@@ -64,6 +64,19 @@ describe('后台管理（第四版新功能）', () => {
     expect(r1.ok).toBe(true)
     const r2 = await adminApi.resetPassword(2, 'newpass1')
     expect(r2.ok).toBe(true)
+  })
+
+  it('adminApi 设为管理员', async () => {
+    localStorage.setItem('lp_admin_token', 'mock-admin-token')
+    const r = await adminApi.setRole(5, 'admin')
+    expect(r.ok).toBe(true)
+    expect(r.role).toBe('admin')
+  })
+
+  it('authApi 修改密码', async () => {
+    localStorage.setItem('lp_token', 'mock-token')
+    const r = await authApi.changePassword('oldpw', 'newpw')
+    expect(r.ok).toBe(true)
   })
 
   it('adminApi.logs 获取操作日志', async () => {

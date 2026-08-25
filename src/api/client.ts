@@ -210,9 +210,9 @@ export const adminApi = {
       users: Array<{ id: number; username: string; nickname: string; role: string; status: number; created_at: string; dataCounts: Record<string, number> }>
     }>('GET', `/admin/users?${q}`)
   },
-  userDetail: (id: number) => adminRequest(`GET`, `/admin/users/${id}`),
-  setStatus: (id: number, status: number) => adminRequest('PUT', `/admin/users/${id}/status`, { status }),
-  resetPassword: (id: number, new_password: string) => adminRequest('PUT', `/admin/users/${id}/password`, { new_password }),
-  remove: (id: number) => adminRequest('DELETE', `/admin/users/${id}`),
+  userDetail: (id: number) => adminRequest<any>('GET', `/admin/users/${id}`),
+  setStatus: (id: number, status: number) => adminRequest<{ ok: boolean }>('PUT', `/admin/users/${id}/status`, { status }),
+  resetPassword: (id: number, new_password: string) => adminRequest<{ ok: boolean }>('PUT', `/admin/users/${id}/password`, { new_password }),
+  remove: (id: number) => adminRequest<{ ok: boolean }>('DELETE', `/admin/users/${id}`),
   logs: (page = 1, pageSize = 20) => adminRequest<{ total: number; logs: Array<{ id: number; admin_name: string; action: string; target_name: string; detail: string; created_at: string }> }>('GET', `/admin/logs?page=${page}&pageSize=${pageSize}`),
 }

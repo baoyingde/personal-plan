@@ -1,7 +1,7 @@
 // 前端 API 客户端：封装所有后端接口调用
 // 统一处理：baseURL、token 注入、401 跳登录
 
-const API_BASE = 'http://localhost:3001/api'
+const API_BASE = '/api'
 
 // 获取 token（存 localStorage）
 export function getToken(): string | null {

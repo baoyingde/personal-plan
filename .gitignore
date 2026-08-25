@@ -31,3 +31,6 @@ Thumbs.db
 # 后端环境配置（含数据库密码，绝不提交）
 server/.env
 server/node_modules/
+
+# 部署脚本（含服务器信息，本地使用）
+deploy-*.cjs

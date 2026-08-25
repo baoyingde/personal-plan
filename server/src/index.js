@@ -37,9 +37,14 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, service: 'life-planner-server', version: '3.1.0' })
 })
 
-// 404 兜底
-app.use((req, res) => {
-  res.status(404).json({ error: '接口不存在', path: req.path })
+// 托管前端静态文件（dist 目录由 vite build 生成）
+const path = require('path')
+const distPath = path.join(__dirname, '..', '..', 'dist')
+app.use(express.static(distPath))
+
+// 非 API 路由全部返回 index.html（SPA 前端路由由前端接管）
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'))
 })
 
 // 错误处理

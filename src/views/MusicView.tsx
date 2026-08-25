@@ -53,14 +53,7 @@ export default function MusicView() {
     stopAudio()
     try {
       const result = await musicApi.playUrl(songs[index].id)
-      const url = result.url
-      // 如果后端返回 fallback（试听链接都失效），打开 QQ 音乐页面
-      if ((result as any).fallback) {
-        window.open(url, '_blank')
-        setError('该歌曲需要在 QQ 音乐中播放（已为你打开页面）')
-        return
-      }
-      const audio = new Audio(url)
+      const audio = new Audio(result.url)
       audio.volume = volume
       audioRef.current = audio
       setCurrentIdx(index)
@@ -68,6 +61,10 @@ export default function MusicView() {
 
       audio.addEventListener('loadedmetadata', () => setDuration(audio.duration))
       audio.addEventListener('timeupdate', () => setCurrentTime(audio.currentTime))
+      audio.addEventListener('ended', () => {
+        setPlaying(false)
+        setCurrentTime(0)
+      })
       audio.addEventListener('error', () => {
         setError('该歌曲无法播放（可能受版权限制），试试其他歌曲')
         setPlaying(false)
@@ -77,7 +74,6 @@ export default function MusicView() {
       setError('播放失败，请重试')
       setPlaying(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [songs, volume])
 
   const togglePlayPause = () => {
